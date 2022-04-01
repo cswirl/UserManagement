@@ -26,7 +26,7 @@ namespace api.Extensions
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 
                 options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = true;
+                //options.SignIn.RequireConfirmedEmail = true;
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();    // This will give us the Email 2FA functionality

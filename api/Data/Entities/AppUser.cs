@@ -12,6 +12,6 @@ namespace api.Data.Entities
 
         public DateTime DateOfBirth { get; set; }
 
-        public DateTime Created { get; set; }
+        public DateTime Created { get; set; } = DateTime.UtcNow;
     }
 }
