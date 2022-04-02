@@ -17,11 +17,13 @@ namespace api.Controllers
     public class AccountController : AppBaseController
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly IMapper _mapper;
 
-        public AccountController(UserManager<AppUser> userManager, IMapper mapper)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IMapper mapper)
         {
             this._userManager = userManager;
+            this._signInManager = signInManager;
             this._mapper = mapper;
         }
 
@@ -51,6 +53,32 @@ namespace api.Controllers
             return Ok();
         }
 
+
+        [HttpPost("login")]
+        public async Task<ActionResult> Login(LoginDto loginDto)
+        {
+            var result = await _signInManager.PasswordSignInAsync(
+                loginDto.Username,
+                loginDto.Password,
+                loginDto.RememberMe,
+                false);
+
+            if (!result.Succeeded)
+            {
+                if (result.IsLockedOut) return Unauthorized("Login failed");
+
+                return Unauthorized("Login failed");
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok();
+        }
 
         private async Task<bool> UserExists(string username)
         {
