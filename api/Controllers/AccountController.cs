@@ -1,5 +1,6 @@
 ﻿using api.Data.Entities;
 using api.DTO;
+using api.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,12 +20,17 @@ namespace api.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IMapper _mapper;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ITokenService _tokenService;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IMapper mapper)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IMapper mapper, 
+            RoleManager<IdentityRole> roleManager, ITokenService tokenService)
         {
             this._userManager = userManager;
             this._signInManager = signInManager;
             this._mapper = mapper;
+            this._roleManager = roleManager;
+            this._tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -55,7 +61,7 @@ namespace api.Controllers
 
 
         [HttpPost("login")]
-        public async Task<ActionResult> Login(LoginDto loginDto)
+        public async Task<ActionResult<LoginResponseDto>> Login(LoginDto loginDto)
         {
             var result = await _signInManager.PasswordSignInAsync(
                 loginDto.Username,
@@ -70,7 +76,13 @@ namespace api.Controllers
                 return Unauthorized("Login failed");
             }
 
-            return Ok();
+            var user = await _userManager.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+
+            return Ok(new LoginResponseDto
+            {
+                UserName = user.UserName,
+                Token = await _tokenService.CreateToken(user),
+            });
         }
 
         [HttpPost("logout")]
