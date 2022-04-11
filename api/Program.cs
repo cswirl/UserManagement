@@ -33,7 +33,7 @@ namespace api
 
                 //This will seed Users, Roles
                 //This will not run if there is any existing user in the database
-                _ = Seed.SeedUsers(userManager, roleManager);
+                _ = Seed.SeedUsers(userManager, roleManager, context);
             }
             catch (Exception ex)
             {
