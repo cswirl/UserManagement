@@ -34,6 +34,13 @@ namespace api.Data
                 {
                     await roleManager.CreateAsync(role);
                 }
+
+                // If an admin user is found, re-assign admin to admin role
+                var admin = await userManager.FindByNameAsync("admin");
+                if (admin != null)
+                {
+                    await userManager.AddToRoleAsync(admin, s_admin);
+                }
             }
 
 
