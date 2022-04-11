@@ -31,14 +31,9 @@ namespace api
         {
             services.AddCors();
 
-            services.AddIdentityServices();
+            services.AddIdentityServices(Configuration);
+            services.AddApplicationServices(Configuration);
 
-            services.AddApplicationServices();
-
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlServer(Configuration.GetConnectionString("Default"));
-            });
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
