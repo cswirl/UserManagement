@@ -1,4 +1,5 @@
-﻿using api.Data.Entities;
+﻿using api.Constants;
+using api.Data.Entities;
 using api.DTO;
 using api.Interfaces;
 using AutoMapper;
@@ -49,7 +50,7 @@ namespace api.Controllers
 
             if (!result.Succeeded) return BadRequest(result.Errors);
 
-            var roleResult = await _userManager.AddToRoleAsync(user, "Member");
+            var roleResult = await _userManager.AddToRoleAsync(user, ClaimNames.Role.Member.ToString());
 
             if (!roleResult.Succeeded) return BadRequest(result.Errors);
 
