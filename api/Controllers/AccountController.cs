@@ -39,9 +39,6 @@ namespace api.Controllers
         {
             if(await UserExists(regDto.Username)) return BadRequest("Username is taken");
 
-            // Validating Email address (Optional) - check if it doesn't exist in the database
-            // THIS VALIDATION IS SET IN THE STARTUP CONFIGURATION: options.User.RequireUniqueEmail = true;
-
             // Create the user 
             var user = _mapper.Map<AppUser>(regDto);
             user.UserName = regDto.Username.ToLower();
@@ -64,11 +61,11 @@ namespace api.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login(LoginDto loginDto)
         {
-            var result = await _signInManager.PasswordSignInAsync(
-                loginDto.Username,
-                loginDto.Password,
-                loginDto.RememberMe,
-                false);
+            var user = await _userManager.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+
+            if (user == null) return Unauthorized("Invalid username");
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
             if (!result.Succeeded)
             {
@@ -77,20 +74,12 @@ namespace api.Controllers
                 return Unauthorized("Login failed");
             }
 
-            var user = await _userManager.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
 
             return Ok(new LoginResponseDto
             {
                 UserName = user.UserName,
                 Token = await _tokenService.CreateToken(user),
             });
-        }
-
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok();
         }
 
         private async Task<bool> UserExists(string username)

@@ -18,20 +18,29 @@ namespace api.Extensions
         public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
         {
 
-            services.AddIdentity<AppUser, IdentityRole>(options =>
+            services.AddIdentityCore<AppUser>(options =>
             {
+                // These are options to be used by UserManager
+                // User creation
                 options.Password.RequiredLength = 4;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = false;
+               
 
+                // Login
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 
+                // Email Confirmation
                 options.User.RequireUniqueEmail = true;
                 //options.SignIn.RequireConfirmedEmail = true;
             })
+            .AddRoles<IdentityRole>()
+            .AddRoleManager<RoleManager<IdentityRole>>()
+            .AddSignInManager<SignInManager<AppUser>>()
+            .AddRoleValidator<RoleValidator<IdentityRole>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();    // This will give us the Email 2FA functionality - hover to see more use case
 
@@ -48,13 +57,6 @@ namespace api.Extensions
                     };
                 });
 
-
-            //
-            //services.ConfigureApplicationCookie(options =>
-            //{
-            //    options.LoginPath = "/Login";
-            //    options.AccessDeniedPath = "/AccessDenied";
-            //});
 
             return services;
         }
