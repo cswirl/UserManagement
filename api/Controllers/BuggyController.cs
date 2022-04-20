@@ -19,20 +19,20 @@ namespace api.Controllers
         }
 
         [Authorize]
-        [HttpGet("auth")]
-        public ActionResult<string> GetSecret()
+        [HttpGet("test-auth")]
+        public ActionResult TestUnauthorized()
         {
-            return "secret text";
+            return Ok(new { Text = "Authorization passed" });
+
+            //// Will cause an subtle error in Angular side - during parsing
+            //return Ok("Authorization passed");
         }
 
 
         [HttpGet("not-found")]
-        public ActionResult<AppUser> GetNotFound()
+        public ActionResult GetNotFound()
         {
-            var thing = _context.Users.Find(-1);
-            if (thing == null) return NotFound();
-
-            return Ok(thing);
+            return NotFound();
         }
 
         [HttpGet("server-error")]
