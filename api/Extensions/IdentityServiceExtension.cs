@@ -35,7 +35,7 @@ namespace api.Extensions
 
                 // Email Confirmation
                 options.User.RequireUniqueEmail = true;
-                //options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedEmail = true;
             })
             .AddRoles<IdentityRole>()
             .AddRoleManager<RoleManager<IdentityRole>>()

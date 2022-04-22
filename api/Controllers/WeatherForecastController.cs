@@ -33,5 +33,29 @@ namespace api.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet("Test1")]
+        public string Test()
+        {
+            var request = HttpContext.Request;
+
+            var uri = string.Concat(request.Scheme, "://",
+                        request.Host.ToUriComponent(),
+                        request.PathBase.ToUriComponent(),
+                        request.Path.ToUriComponent(),
+                        request.QueryString.ToUriComponent());
+
+
+
+            return uri;
+        }
+
+        [HttpGet("Test2")]
+        public string Test2()
+        {
+            var uri = "";
+
+            return uri;
+        }
     }
 }

@@ -2,6 +2,7 @@
 using api.Helpers;
 using api.Interfaces;
 using api.Services;
+using api.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,13 @@ namespace api.Extensions
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 
             services.AddScoped<ITokenService, TokenService>();
+
+            services.AddScoped<IEmailService, EmailService>();
+
+            // This will give us pre-populated SmtpSetting object - works similar to an automapper
+            services.Configure<SmtpSettings>(config.GetSection("SMTP"));
+
+
 
             services.AddDbContext<AppDbContext>(options =>
             {
