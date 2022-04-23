@@ -31,6 +31,7 @@ namespace api
         {
             services.AddCors();
 
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddIdentityServices(Configuration);
             services.AddApplicationServices(Configuration);
 

@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -25,9 +27,10 @@ namespace api.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration configuration;
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IMapper mapper, 
-            RoleManager<IdentityRole> roleManager, ITokenService tokenService, IEmailService emailService)
+            RoleManager<IdentityRole> roleManager, ITokenService tokenService, IEmailService emailService, IConfiguration configuration)
         {
             this._userManager = userManager;
             this._signInManager = signInManager;
@@ -35,6 +38,7 @@ namespace api.Controllers
             this._roleManager = roleManager;
             this._tokenService = tokenService;
             this._emailService = emailService;
+            this.configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -78,7 +82,8 @@ namespace api.Controllers
             // Send the confirmation link via Email
             await _emailService.SendAsync(user.Email,
                 "Please confirm your email",
-                $"Please click on this link to confirm your email address: {confirmationLink}");
+                $"Please click on this link to confirm your email address: {confirmationLink}" +
+                $"\n\nThe email confirmation link will expire in {AppGlobal.TOKEN_EXPIRY} hours");
 
 
             return StatusCode(201);
@@ -138,9 +143,73 @@ namespace api.Controllers
         }
 
 
+        [HttpPost("forgot-password")] 
+        public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+            if (user == null) return BadRequest(new IdentityError {Code= "EmailNotFound", Description = $"'{forgotPasswordDto.Email}' does not exist in our record" });
+
+            
+            // Generate Confirmation Token to be sent via Email
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var callback_link = QueryHelpers.AddQueryString(forgotPasswordDto.ClientURI, new Dictionary<string, string>
+            {
+                {"email", user.Email},
+                {"token", resetToken}
+            });
+
+
+            // Send the confirmation link via Email
+            await _emailService.SendAsync(user.Email,
+                "Password Reset link",
+                $"Please click on this link to reset your password: {callback_link} " +
+                $"\n\nThe password reset link will expire in {AppGlobal.TOKEN_EXPIRY} hours");
+
+            return Ok();
+        }
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            if (user == null) return BadRequest("Invalid Request");
+
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.Password);
+            if (!resetPassResult.Succeeded)
+            {
+                var errors = resetPassResult.Errors.Select(e => e.Description);
+                return BadRequest(new { Errors = errors });
+            }
+
+            return Ok();
+        }
+
+
         private async Task<bool> UserExists(string username)
         {
             return await _userManager.Users.AnyAsync(x => x.UserName == username.ToLower());
         }
+    }
+
+    public class ForgotPasswordDto
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        public string ClientURI { get; set; }
+    }
+
+    public class ResetPasswordDto
+    {
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; }
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
+        public string Email { get; set; }
+        public string Token { get; set; }
     }
 }

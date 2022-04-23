@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace api.Controllers
@@ -15,10 +16,12 @@ namespace api.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IConfiguration configuration;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration)
         {
             _logger = logger;
+            this.configuration = configuration;
         }
 
         [HttpGet]
@@ -53,7 +56,11 @@ namespace api.Controllers
         [HttpGet("Test2")]
         public string Test2()
         {
-            var uri = "";
+            var client_pathBase = configuration.GetSection("AngularClient").Value;
+            var resetPassword_path = HttpContext.Request.Path.ToUriComponent().Replace("Test2", "reset-password"); ;
+            var abs_path = string.Concat(client_pathBase, resetPassword_path);
+
+            var uri = abs_path;
 
             return uri;
         }

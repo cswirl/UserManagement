@@ -1,4 +1,5 @@
-﻿using api.Data;
+﻿using api.Constants;
+using api.Data;
 using api.Data.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -44,6 +45,8 @@ namespace api.Extensions
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();    // This will give us the Email 2FA functionality - hover to see more use case
 
+
+            services.Configure<DataProtectionTokenProviderOptions>(opt => opt.TokenLifespan = TimeSpan.FromHours(AppGlobal.TOKEN_EXPIRY));  // This line can be ommitted and the default is set at 1 Day
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
