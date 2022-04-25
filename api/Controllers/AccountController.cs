@@ -187,9 +187,95 @@ namespace api.Controllers
         }
 
 
+
+        [HttpPost("change-email")]
+        public async Task<ActionResult> EmailChange([FromBody] EmailChangeDto emailChangeDto)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == default) return Unauthorized();
+
+            if (emailChangeDto.NewEmail == user.Email)
+            {
+                return BadRequest("This is your current email. Please use a different email");
+            } else
+            {
+                var result = await EmailTaken(emailChangeDto.NewEmail, user.UserName);
+                if (result) return BadRequest($"The email '{emailChangeDto.NewEmail}' already taken");
+            }
+            
+
+            // Generate Confirmation Token to be sent via Email
+            var token = await _userManager.GenerateChangeEmailTokenAsync(user, emailChangeDto.NewEmail);
+
+            // Build the Confirmation Link and send via Email
+            /// Create the Absolute path to update-email action
+            var request = HttpContext.Request;
+            var abs_url = string.Concat(request.Scheme, "://",
+                        request.Host.ToUriComponent(),
+                        request.PathBase.ToUriComponent(),
+                        "/api/account/update-email");
+            ///
+
+            var callbackUrl = QueryHelpers.AddQueryString(abs_url, new Dictionary<string, string>
+            {
+                {"userId", user.Id.ToString()},
+                {"newEmail", emailChangeDto.NewEmail},
+                {"token", token}
+            });
+
+
+            // Send the confirmation link via Email
+            await _emailService.SendAsync(emailChangeDto.NewEmail,
+                "Confirm Email Change",
+                $"IMPORTANT: If you did not make this request. DO NOT click the link and ignore this email." +
+                $"\n\nPlease click on this link to confirm email change: {callbackUrl} " +
+                $"\n\nThe link will expire in {AppGlobal.TOKEN_EXPIRY} hours");
+
+            return Ok();
+        }
+
+        [HttpGet("update-email")]
+        public async Task<ContentResult> UpdateEmail(string userId, string newEmail, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            var errorMessage = "<h3>Request to change the email failed. Please contact administrator</h3>";
+
+            if (user == default)
+            {
+                base.Response.StatusCode = 400;
+                return base.Content(errorMessage, "text/html");
+            }
+
+            var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
+            if (!result.Succeeded)
+            {
+                var error = result.Errors.FirstOrDefault();
+                errorMessage = $"<h3>Request to change the email failed" +
+                    $"\n\n<h4><strong>{error?.Code}</strong></h4> - {error?.Description}";
+                base.Response.StatusCode = 400;
+                return base.Content(errorMessage, "text/html");
+            }
+
+            var message = $"<h3>Your email is now changed to '{newEmail}'</h3> <BR/><p>You can close this window</p>";
+
+            return base.Content(message, "text/html");
+        }
+
+
         private async Task<bool> UserExists(string username)
         {
             return await _userManager.Users.AnyAsync(x => x.UserName == username.ToLower());
+        }
+
+        private async Task<bool> EmailTaken(string email)
+        {
+            return await _userManager.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
+        }
+
+        private async Task<bool> EmailTaken(string email, string exceptUserName)
+        {
+            return await _userManager.Users.AnyAsync(x => x.UserName.ToLower() != exceptUserName.ToLower() && x.Email.ToLower() == email.ToLower());
         }
     }
 
@@ -211,5 +297,15 @@ namespace api.Controllers
         public string ConfirmPassword { get; set; }
         public string Email { get; set; }
         public string Token { get; set; }
+    }
+
+    public class EmailChangeDto
+    {
+        [Required]
+        [EmailAddress]
+        public string NewEmail { get; set; }
+
+        [Required]
+        public string ClientURI { get; set; }   // Not used
     }
 }
