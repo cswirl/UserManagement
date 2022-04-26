@@ -64,5 +64,27 @@ namespace api.Controllers
 
             return uri;
         }
+
+        [HttpGet("test3")]
+        public string Test3()
+        {
+            string path = "/auth/password-reset";
+            string ret = "";
+
+            var headers = HttpContext.Request.Headers;
+            var origin = headers["origin"];
+            if (origin != Microsoft.Extensions.Primitives.StringValues.Empty)
+            {
+                return string.Concat(origin.FirstOrDefault().ToString(), path);
+            }
+
+            var request = HttpContext.Request;
+            ret = string.Concat(request.Scheme, "://",
+                        request.Host.ToUriComponent(),
+                        request.PathBase.ToUriComponent(),
+                        path);
+
+            return ret;
+        }
     }
 }

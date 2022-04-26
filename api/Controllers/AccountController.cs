@@ -153,7 +153,8 @@ namespace api.Controllers
             // Generate Confirmation Token to be sent via Email
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            var callback_link = QueryHelpers.AddQueryString(forgotPasswordDto.ClientURI, new Dictionary<string, string>
+            string callbackPath = AppGlobal.CallbackUrlPath(HttpContext, forgotPasswordDto.ClientURI);
+            var callback_link = QueryHelpers.AddQueryString(callbackPath, new Dictionary<string, string>
             {
                 {"email", user.Email},
                 {"token", resetToken}
