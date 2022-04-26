@@ -262,6 +262,23 @@ namespace api.Controllers
             return base.Content(message, "text/html");
         }
 
+        [HttpPost("update-password")]
+        public async Task<ActionResult> UpdatePassword([FromBody] PasswordUpdateDto passwordUpdateDto)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == default) return Unauthorized();
+
+            //var token = _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var result = await _userManager.ChangePasswordAsync(user, passwordUpdateDto.CurrentPassword, passwordUpdateDto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok();
+        }
+
 
         private async Task<bool> UserExists(string username)
         {
@@ -308,4 +325,18 @@ namespace api.Controllers
         [Required]
         public string ClientURI { get; set; }   // Not used
     }
+
+    public class PasswordUpdateDto
+    {
+        [Required(ErrorMessage = "Password is required")]
+        public string CurrentPassword { get; set; }
+        
+        [Required(ErrorMessage = "New Password is required")]
+        public string NewPassword { get; set; }
+
+        [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmNewPassword { get; set; }
+    }
+
+   
 }

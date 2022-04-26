@@ -16,7 +16,7 @@ namespace api.DTO
 
         [Required]
         [DataType(dataType: DataType.Password)]
-        [StringLength(20, MinimumLength = 4)]
+        [StringLength(250, MinimumLength = 4)]
         public string Password { get; set; }
 
         [Required]
