@@ -44,8 +44,6 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto regDto)
         {
-            if(await UserExists(regDto.Username)) return BadRequest("Username is taken");
-
             // Create the user 
             var user = _mapper.Map<AppUser>(regDto);
             user.UserName = regDto.Username.ToLower();
@@ -311,9 +309,15 @@ namespace api.Controllers
     {
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirm Password is required")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
         public string Email { get; set; }
+
+        [Required(ErrorMessage = "Token is required")]
         public string Token { get; set; }
     }
 
@@ -335,6 +339,7 @@ namespace api.Controllers
         [Required(ErrorMessage = "New Password is required")]
         public string NewPassword { get; set; }
 
+        [Required(ErrorMessage = "Confirm Password is required")]
         [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmNewPassword { get; set; }
     }
