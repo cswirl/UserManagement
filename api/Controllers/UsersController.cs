@@ -1,4 +1,4 @@
-﻿using api.Data;
+using api.Data;
 using api.Data.Entities;
 using api.DTO;
 using AutoMapper;
@@ -36,7 +36,7 @@ namespace api.Controllers
         }
 
         [HttpGet("{username}", Name = "GetUser")]
-        public async Task<AppUser> GetUser(string username)
+        public AppUser GetUser(string username)
         {
             return dbContext.Users.FirstOrDefault(x => x.UserName == username);
         }

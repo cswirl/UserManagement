@@ -1,3 +1,10 @@
+# App Ignore files
+
+*.db
+appsettings.json
+*.dgml
+
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudio,angular
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudio,angular
@@ -436,8 +443,4 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,angular
 
 
-# OTHERS
 
-*.db
-appsettings.json
-*.dgml
