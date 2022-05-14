@@ -64,7 +64,8 @@ namespace api
             app.UseCors(policy => policy
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .WithOrigins(Configuration.GetSection("AngularClient").Value));
+                .WithOrigins(Configuration["AngularClient"])
+                );
 
             app.UseAuthentication();
 
