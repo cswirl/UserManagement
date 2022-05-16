@@ -43,22 +43,6 @@ namespace api.Data
                 }
             }
 
-
-            // Create Admin if no record
-            if (!(await userManager.Users.AnyAsync()))
-            {
-                var admin = new AppUser
-                {
-                    UserName = "admin",
-                    Email = "admin@timehorizon.com",
-                    EmailConfirmed = true,
-                };
-
-                await userManager.CreateAsync(admin, "admin");
-                await userManager.AddToRoleAsync(admin, s_admin);
-            }
-           
-
             // Create Claims for the Roles if no record
             if (!(await appDbContext.RoleClaims.AnyAsync()))
             {
@@ -70,10 +54,13 @@ namespace api.Data
                     new Claim(ClaimNames.MembershipTier, ClaimNames.MembershipTierEnum.Platinum.ToString())
                 };
 
+                var admin = roleManager.Roles.FirstOrDefault(x => x.Name == s_admin);
+                var mod = roleManager.Roles.FirstOrDefault(x => x.Name == s_mod);
+
                 foreach (var claim in tier)
                 {
-                    await roleManager.AddClaimAsync(roleManager.Roles.FirstOrDefault(x => x.Name == s_admin), claim);
-                    await roleManager.AddClaimAsync(roleManager.Roles.FirstOrDefault(x => x.Name == s_mod), claim);
+                    if (admin != default) await roleManager.AddClaimAsync(admin, claim);
+                    if (mod != default) await roleManager.AddClaimAsync(mod, claim);
                 }
 
                 // Member
@@ -81,7 +68,24 @@ namespace api.Data
                     roleManager.Roles.FirstOrDefault(x => x.Name == s_member),
                     new Claim(ClaimNames.MembershipTier, ClaimNames.MembershipTierEnum.Silver.ToString()));
             }
-            
+
+
+            // Create Admin if no record
+            if (!(await userManager.Users.AnyAsync()))
+            {
+                var admin = new AppUser
+                {
+                    UserName = "admin",
+                    Email = "admin@timehorizon.com",
+                    EmailConfirmed = true,
+                };
+
+                var result = await userManager.CreateAsync(admin, "Pa$$w0rd");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, s_admin);
+                }
+            }
 
         }
     }

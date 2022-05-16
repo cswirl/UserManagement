@@ -5,6 +5,7 @@ appsettings.Development.json
 *.db
 *.dgml
 
+appsettings.Development.json
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudio,angular
