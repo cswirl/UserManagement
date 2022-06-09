@@ -1,7 +1,8 @@
 # App Ignore files
 
+appsettings.Development.json
+
 *.db
-appsettings.json
 *.dgml
 
 
